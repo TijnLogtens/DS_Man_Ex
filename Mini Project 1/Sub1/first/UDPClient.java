@@ -1,3 +1,7 @@
+package first;
+
+import util.QuestionableDatagramSocket;
+
 import java.net.*;
 import java.io.*;
 import java.util.Scanner;
