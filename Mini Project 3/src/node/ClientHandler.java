@@ -23,11 +23,19 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             Message message = (Message) new ObjectInputStream(con.getInputStream()).readObject();
-
-            if(message.messageType == MessageType.PUT){
+            if(message.messageType == MessageType.NEWNODE){
+                Message newNodeM = new Message(MessageType.CHANGE, message.id, message.message);
+                // send message to old prev node
+                // send message back with ID of old prev node to node in message
+                // change prev node to message info
+            }
+            else if(message.messageType == MessageType.CHANGE){
+                // change next node to message info
+            }
+            else if(message.messageType == MessageType.PUT){
                 data.put(message.id,message.message);
             }
-            if(message.messageType == MessageType.GET){
+            else if(message.messageType == MessageType.GET){
                 String value = data.get(message.id);
                 if(value == null){
                     //TODO Send to peer Server

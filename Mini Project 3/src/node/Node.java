@@ -12,12 +12,14 @@ public class Node {
 
     private static ConcurrentMap<Integer,String> data = new ConcurrentHashMap<>();
     private static int localport;
-    private static String peerServer;
-    private static int peerServerPort;
+    public static String nextPeerServer;
+    public static int nextPeerServerPort;
+    public static String prevPeerServer;
+    public static int prevPeerServerPort;
 
     public static void main(String[] args) throws IOException {
         connectionArgs(args);
-        //TODO Node Settup
+        //TODO Node Setup
         ServerSocket serverSocket = new ServerSocket(localport);
         while (true){
             Socket con = serverSocket.accept();
@@ -31,8 +33,8 @@ public class Node {
         } else{
             if(args.length == 3){
                 localport = Integer.parseInt(args[0]);
-                peerServer = args[1];
-                peerServerPort = Integer.parseInt(args[1]);
+                nextPeerServer = args[1];
+                nextPeerServerPort = Integer.parseInt(args[1]);
             } else{
                 throw new IllegalArgumentException("invalid amount of args");
             }
