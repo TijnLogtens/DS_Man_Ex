@@ -17,6 +17,8 @@ public class GetClient {
         Message m = new Message(MessageType.GET,key,"");
         Socket con = new Socket(ip, port);
         new ObjectOutputStream(con.getOutputStream()).writeObject(m);
+        m = (Message) new ObjectInputStream(con.getInputStream()).readObject();
+        System.out.println(m.message);
 
     }
 }

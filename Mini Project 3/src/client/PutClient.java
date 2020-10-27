@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class PutClient {
-
+    // TODO merge clients
     public static void main(String[] args) throws IOException {
         String ip = args[0];
         int port = Integer.parseInt(args[1]);

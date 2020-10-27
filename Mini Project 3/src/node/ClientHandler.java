@@ -5,6 +5,7 @@ import util.MessageType;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentMap;
 
@@ -31,7 +32,8 @@ public class ClientHandler implements Runnable {
                 if(value == null){
                     //TODO Send to peer Server
                 }
-                //TODO send answer to client
+                message.message = value;
+                new ObjectOutputStream(con.getOutputStream()).writeObject(message);
             }
 
         } catch (IOException e) {
