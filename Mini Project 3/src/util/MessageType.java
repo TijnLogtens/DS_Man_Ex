@@ -1,5 +1,5 @@
 package util;
 
 public enum MessageType {
-    PUT,GET, NEWNODE, CHANGE
+    PUT, GET, NEWNODE, CHANGENEXT, CHANGEPREVIOUS
 }

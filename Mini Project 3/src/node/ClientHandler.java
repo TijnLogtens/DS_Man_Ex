@@ -12,10 +12,12 @@ import java.util.concurrent.ConcurrentMap;
 public class ClientHandler implements Runnable {
     private Socket con;
     private ConcurrentMap<Integer, String> data;
+    private Node node;
 
-    public ClientHandler(Socket con, ConcurrentMap<Integer, String> data) {
+    public ClientHandler(Node n, Socket con, ConcurrentMap<Integer, String> data) {
         this.con = con;
         this.data = data;
+        this.node = n;
     }
 
 
@@ -24,24 +26,53 @@ public class ClientHandler implements Runnable {
         try {
             Message message = (Message) new ObjectInputStream(con.getInputStream()).readObject();
             if(message.messageType == MessageType.NEWNODE){
-                Message newNodeM = new Message(MessageType.CHANGE, message.id, message.message);
-                // send message to old prev node
-                // send message back with ID of old prev node to node in message
-                // change prev node to message info
-            }
-            else if(message.messageType == MessageType.CHANGE){
+                // just got a message saying "Hey, you're my next node. Who's my previous node"
+
+                // need to notify old previous node telling him that his next node has changed
+                Message newNodeM = new Message(MessageType.CHANGENEXT, message.id, message.message);
+                Socket c = new Socket(node.prevPeerServer, node.prevPeerServerPort);
+                new ObjectOutputStream(c.getOutputStream()).writeObject(newNodeM);
+
+                // send message back with ID of old previous node to node in message
+                newNodeM = new Message(MessageType.CHANGEPREVIOUS, node.prevPeerServerPort, node.prevPeerServer);
+                c = new Socket(message.message, message.id);
+                new ObjectOutputStream(c.getOutputStream()).writeObject(newNodeM);
+
                 // change next node to message info
+                node.nextPeerServer = message.message;
+                node.nextPeerServerPort = message.id;
+            }
+            else if(message.messageType == MessageType.CHANGEPREVIOUS){
+                node.prevPeerServer = message.message;
+                node.prevPeerServerPort = message.id;
+            }
+            else if(message.messageType == MessageType.CHANGENEXT){
+                node.nextPeerServer = message.message;
+                node.nextPeerServerPort = message.id;
             }
             else if(message.messageType == MessageType.PUT){
                 data.put(message.id,message.message);
             }
             else if(message.messageType == MessageType.GET){
                 String value = data.get(message.id);
-                if(value == null){
-                    //TODO Send to peer Server
+                if(message.message == node.toString()){
+                    value = "RESOURCE NOT FOUND";
+                    message.message = value;
+                    new ObjectOutputStream(con.getOutputStream()).writeObject(message);
                 }
-                message.message = value;
-                new ObjectOutputStream(con.getOutputStream()).writeObject(message);
+                if(value == null){
+                    String sender = message.message;
+                    if(sender == ""){
+                        sender = node.toString();
+                    }
+                    Message m = new Message(MessageType.GET, message.id, sender);
+                    Socket c = new Socket(node.nextPeerServer, node.nextPeerServerPort);
+                    new ObjectOutputStream(con.getOutputStream()).writeObject(m);
+                }
+                else{
+                    message.message = value;
+                    new ObjectOutputStream(con.getOutputStream()).writeObject(message);
+                }
             }
 
         } catch (IOException e) {
