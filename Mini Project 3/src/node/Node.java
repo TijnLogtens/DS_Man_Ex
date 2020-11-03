@@ -20,19 +20,22 @@ public class Node {
     public String prevPeerServer;
     public int prevPeerServerPort;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
         Node n = new Node(args);
     }
 
-    private Node(String[] args) throws IOException {
+    public Node(String[] args) {
         connectionArgs(args);
+    }
+
+    public void start() throws IOException {
+        notifyPear();
         ServerSocket serverSocket = new ServerSocket(this.localPort);
         while (true){
             Socket con = serverSocket.accept();
             new Thread(new ClientHandler(this, con)).start();
         }
     }
-
     private void connectionArgs(String[] args){
         if(args.length == 2){
             localServer = args[0];
@@ -42,15 +45,16 @@ public class Node {
             prevPeerServer = localServer;
             prevPeerServerPort = localPort;
         } else{
-            if(args.length == 3){
-                localPort = Integer.parseInt(args[0]);
-                nextPeerServer = args[1];
-                nextPeerServerPort = Integer.parseInt(args[2]);
+            if(args.length == 4){
+                localServer = args[0];
+                localPort = Integer.parseInt(args[1]);
+                nextPeerServer = args[2];
+                nextPeerServerPort = Integer.parseInt(args[3]);
             } else{
                 throw new IllegalArgumentException("invalid amount of args");
             }
         }
-        notifyPear();
+        
     }
 
     private void notifyPear(){
