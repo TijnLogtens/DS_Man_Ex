@@ -11,12 +11,10 @@ import java.util.concurrent.ConcurrentMap;
 
 public class ClientHandler implements Runnable {
     private Socket con;
-    private ConcurrentMap<Integer, String> data;
     private Node node;
 
-    public ClientHandler(Node n, Socket con, ConcurrentMap<Integer, String> data) {
+    public ClientHandler(Node n, Socket con) {
         this.con = con;
-        this.data = data;
         this.node = n;
     }
 
@@ -51,10 +49,10 @@ public class ClientHandler implements Runnable {
                 node.nextPeerServerPort = message.id;
             }
             else if(message.messageType == MessageType.PUT){
-                data.put(message.id,message.message);
+                node.data.put(message.id,message.message);
             }
             else if(message.messageType == MessageType.GET){
-                String value = data.get(message.id);
+                String value = node.data.get(message.id);
                 if(message.message == node.toString()){
                     value = "RESOURCE NOT FOUND";
                     message.message = value;

@@ -14,7 +14,7 @@ public class GetClient {
         String ip = args[0];
         int port = Integer.parseInt(args[1]);
         int key = Integer.parseInt(args[2]);
-        Message m = new Message(MessageType.GET,key,"");
+        Message m = new Message(MessageType.GET,key,""); // Client should never specify a message
         Socket con = new Socket(ip, port);
         new ObjectOutputStream(con.getOutputStream()).writeObject(m);
         m = (Message) new ObjectInputStream(con.getInputStream()).readObject();

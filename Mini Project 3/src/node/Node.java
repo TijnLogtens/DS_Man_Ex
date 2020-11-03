@@ -1,6 +1,5 @@
 package node;
 
-import node.ClientHandler;
 import util.Message;
 import util.MessageType;
 
@@ -13,7 +12,7 @@ import java.io.ObjectOutputStream;
 
 public class Node {
 
-    private static ConcurrentMap<Integer,String> data = new ConcurrentHashMap<>();
+    protected ConcurrentMap<Integer,String> data = new ConcurrentHashMap<>();
     private String localServer;
     private int localPort;
     public String nextPeerServer;
@@ -30,7 +29,7 @@ public class Node {
         ServerSocket serverSocket = new ServerSocket(this.localPort);
         while (true){
             Socket con = serverSocket.accept();
-            new Thread(new ClientHandler(this, con,data)).start();
+            new Thread(new ClientHandler(this, con)).start();
         }
     }
 
