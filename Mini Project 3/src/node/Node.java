@@ -38,6 +38,10 @@ public class Node {
         if(args.length == 2){
             localServer = args[0];
             localPort = Integer.parseInt(args[1]);
+            nextPeerServer = localServer;
+            nextPeerServerPort = localPort;
+            prevPeerServer = localServer;
+            prevPeerServerPort = localPort;
         } else{
             if(args.length == 3){
                 localPort = Integer.parseInt(args[0]);
