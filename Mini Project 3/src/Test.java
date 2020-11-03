@@ -73,10 +73,11 @@ public class Test{
             // Client PUT(1, A) to 1025.
             Message m = new Message(MessageType.PUT,1,"A");
             Socket con = new Socket("localhost", 1025);
+            con.close();
             new ObjectOutputStream(con.getOutputStream()).writeObject(m);
-
             // Client at 2048 sends GET(1, 2048) to 1025; 
             m = new Message(MessageType.GET,1,"");
+            System.out.println(m.message);
             con = new Socket("localhost", 1025);
 
             //eventually receives PUT(1, A) at 2048 from someone.

@@ -20,8 +20,9 @@ public class Node {
     public String prevPeerServer;
     public int prevPeerServerPort;
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
         Node n = new Node(args);
+        n.start();
     }
 
     public Node(String[] args) {

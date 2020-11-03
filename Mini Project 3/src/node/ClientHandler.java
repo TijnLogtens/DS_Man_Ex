@@ -64,7 +64,9 @@ public class ClientHandler implements Runnable {
                     }
                     Message m = new Message(MessageType.GET, message.id, sender);
                     Socket c = new Socket(node.nextPeerServer, node.nextPeerServerPort);
-                    new ObjectOutputStream(con.getOutputStream()).writeObject(m);
+                    new ObjectOutputStream(c.getOutputStream()).writeObject(m);
+                    Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
+                    new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
                 }
                 else{
                     message.message = value;
