@@ -13,4 +13,5 @@ public class Message implements Serializable {
     public MessageType messageType;
     public int id;
     public String message;
+    public int direction = 0;
 }

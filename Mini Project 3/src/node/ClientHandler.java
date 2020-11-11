@@ -7,11 +7,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
-    private Socket con;
-    private Node node;
+    private final Socket con;
+    private final Node node;
 
     public ClientHandler(Node n, Socket con) {
         this.con = con;
@@ -52,58 +52,55 @@ public class ClientHandler implements Runnable {
                 node.data.put(message.id,message.message);
             }
             else if(message.messageType == MessageType.GET){
-                handleGet(node,message);
+                handleGet(message);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    private void handleGet(Node n, Message message) throws IOException, ClassNotFoundException {
+    private void handleGet(Message message) throws IOException, ClassNotFoundException {
         String value = node.data.get(message.id);
-        if(message.message == node.toString()){
+        if(message.message.equals(node.toString())){
             value = "RESOURCE NOT FOUND";
             message.message = value;
             new ObjectOutputStream(con.getOutputStream()).writeObject(message);
         }
         if(value == null){
             String sender = message.message;
-            if(sender == ""){
+            if(sender.equals("")){
                 sender = node.toString();
             }
             Message m = new Message(MessageType.GET, message.id, sender);
-            handleNext(node,m);
+            boolean success = handleNext(m);
+            if(!success && m.message.equals(node.toString())){
+                m.direction = 1;
+                success = handleNext(m);
+                if(!success && m.message.equals(node.toString())){
+                    new ObjectOutputStream(con.getOutputStream()).writeObject("RESOURCE NOT FOUND");
+                }
+            }
 
         }
-        else{
+        else{ // I have the value
             message.message = value;
             new ObjectOutputStream(con.getOutputStream()).writeObject(message);
         }
     }
 
-    private void handleNext(Node node, Message m) throws IOException, ClassNotFoundException {
-        try(Socket c = new Socket(node.nextPeerServer, node.nextPeerServerPort)){
-            c.setSoTimeout(5000);
-            new ObjectOutputStream(c.getOutputStream()).writeObject(m);
-            Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
-            new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
-        } catch (SocketTimeoutException ste){
-            handlePrev(node,m);
-        }
-
+    private boolean handleNext(Message m) throws IOException, ClassNotFoundException {
+            String server = m.direction == 0 ? node.nextPeerServer : node.prevPeerServer;
+            int port = m.direction == 0 ? node.nextPeerServerPort : node.prevPeerServerPort;
+            try(Socket c = new Socket(server, port)){
+                c.setSoTimeout(5000);
+                new ObjectOutputStream(c.getOutputStream()).writeObject(m);
+                Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
+                new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
+                return true;
+            } catch (SocketException e){
+                return false;
+            }
     }
 
-    private void handlePrev(Node node, Message m) throws IOException, ClassNotFoundException {
-        try(Socket c = new Socket(node.prevPeerServer, node.prevPeerServerPort)){
-            c.setSoTimeout(5000);
-            new ObjectOutputStream(c.getOutputStream()).writeObject(m);
-            Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
-            new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
-        } catch (SocketTimeoutException ste){
-            // send error message to client
-        }
-    }
 }
