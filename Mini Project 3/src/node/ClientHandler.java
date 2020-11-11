@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler implements Runnable {
     private Socket con;
@@ -51,33 +52,58 @@ public class ClientHandler implements Runnable {
                 node.data.put(message.id,message.message);
             }
             else if(message.messageType == MessageType.GET){
-                String value = node.data.get(message.id);
-                if(message.message == node.toString()){
-                    value = "RESOURCE NOT FOUND";
-                    message.message = value;
-                    new ObjectOutputStream(con.getOutputStream()).writeObject(message);
-                }
-                if(value == null){
-                    String sender = message.message;
-                    if(sender == ""){
-                        sender = node.toString();
-                    }
-                    Message m = new Message(MessageType.GET, message.id, sender);
-                    Socket c = new Socket(node.nextPeerServer, node.nextPeerServerPort);
-                    new ObjectOutputStream(c.getOutputStream()).writeObject(m);
-                    Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
-                    new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
-                }
-                else{
-                    message.message = value;
-                    new ObjectOutputStream(con.getOutputStream()).writeObject(message);
-                }
+                handleGet(node,message);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void handleGet(Node n, Message message) throws IOException, ClassNotFoundException {
+        String value = node.data.get(message.id);
+        if(message.message == node.toString()){
+            value = "RESOURCE NOT FOUND";
+            message.message = value;
+            new ObjectOutputStream(con.getOutputStream()).writeObject(message);
+        }
+        if(value == null){
+            String sender = message.message;
+            if(sender == ""){
+                sender = node.toString();
+            }
+            Message m = new Message(MessageType.GET, message.id, sender);
+            handleNext(node,m);
+
+        }
+        else{
+            message.message = value;
+            new ObjectOutputStream(con.getOutputStream()).writeObject(message);
+        }
+    }
+
+    private void handleNext(Node node, Message m) throws IOException, ClassNotFoundException {
+        try(Socket c = new Socket(node.nextPeerServer, node.nextPeerServerPort)){
+            c.setSoTimeout(5000);
+            new ObjectOutputStream(c.getOutputStream()).writeObject(m);
+            Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
+            new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
+        } catch (SocketTimeoutException ste){
+            handlePrev(node,m);
+        }
+
+    }
+
+    private void handlePrev(Node node, Message m) throws IOException, ClassNotFoundException {
+        try(Socket c = new Socket(node.prevPeerServer, node.prevPeerServerPort)){
+            c.setSoTimeout(5000);
+            new ObjectOutputStream(c.getOutputStream()).writeObject(m);
+            Message nm = (Message) new ObjectInputStream(c.getInputStream()).readObject();
+            new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
+        } catch (SocketTimeoutException ste){
+            // send error message to client
         }
     }
 }
