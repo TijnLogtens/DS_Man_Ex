@@ -92,6 +92,8 @@ public class ClientHandler implements Runnable {
     private boolean handleNext(Message m) throws IOException, ClassNotFoundException {
             String server = m.direction == 0 ? node.nextPeerServer : node.prevPeerServer;
             int port = m.direction == 0 ? node.nextPeerServerPort : node.prevPeerServerPort;
+            System.out.println(node.nextPeerServer +":"+ node.prevPeerServer);
+            System.out.println(node.nextPeerServerPort  +":"+  node.prevPeerServerPort);
             try(Socket c = new Socket(server, port)){
                 c.setSoTimeout(5000);
                 new ObjectOutputStream(c.getOutputStream()).writeObject(m);
@@ -99,6 +101,7 @@ public class ClientHandler implements Runnable {
                 new ObjectOutputStream(con.getOutputStream()).writeObject(nm);
                 return true;
             } catch (SocketException e){
+                if(!m.message.equals(node.toString())) con.close();
                 return false;
             }
     }

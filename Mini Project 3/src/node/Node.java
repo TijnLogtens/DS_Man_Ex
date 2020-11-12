@@ -22,6 +22,7 @@ public class Node {
 
     public static void main(String[] args) throws IOException {
         Node n = new Node(args);
+        System.out.println(n);
         n.start();
     }
 
