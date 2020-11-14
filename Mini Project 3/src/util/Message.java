@@ -8,10 +8,21 @@ public class Message implements Serializable {
         this.messageType = messageType;
         this.id = id;
         this.message = message;
+        this.direction = 0;
     }
 
     public MessageType messageType;
     public int id;
     public String message;
-    public int direction = 0;
+    public int direction;
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageType=" + messageType +
+                ", id=" + id +
+                ", message='" + message + '\'' +
+                ", direction=" + direction +
+                '}';
+    }
 }

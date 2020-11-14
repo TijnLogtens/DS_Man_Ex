@@ -32,13 +32,13 @@ public class ClientHandler implements Runnable {
                 new ObjectOutputStream(c.getOutputStream()).writeObject(newNodeM);
 
                 // send message back with ID of old previous node to node in message
-                newNodeM = new Message(MessageType.CHANGEPREVIOUS, node.prevPeerServerPort, node.prevPeerServer);
+                newNodeM = new Message(MessageType.CHANGEPREVIOUS   , node.prevPeerServerPort, node.prevPeerServer);
                 c = new Socket(message.message, message.id);
                 new ObjectOutputStream(c.getOutputStream()).writeObject(newNodeM);
 
                 // change next node to message info
-                node.nextPeerServer = message.message;
-                node.nextPeerServerPort = message.id;
+                node.prevPeerServer = message.message;
+                node.prevPeerServerPort = message.id;
             }
             else if(message.messageType == MessageType.CHANGEPREVIOUS){
                 node.prevPeerServer = message.message;
@@ -73,6 +73,7 @@ public class ClientHandler implements Runnable {
                 sender = node.toString();
             }
             Message m = new Message(MessageType.GET, message.id, sender);
+            m.direction = message.direction;
             boolean success = handleNext(m);
             if(!success && m.message.equals(node.toString())){
                 m.direction = 1;
@@ -92,8 +93,7 @@ public class ClientHandler implements Runnable {
     private boolean handleNext(Message m) throws IOException, ClassNotFoundException {
             String server = m.direction == 0 ? node.nextPeerServer : node.prevPeerServer;
             int port = m.direction == 0 ? node.nextPeerServerPort : node.prevPeerServerPort;
-            System.out.println(node.nextPeerServer +":"+ node.prevPeerServer);
-            System.out.println(node.nextPeerServerPort  +":"+  node.prevPeerServerPort);
+            System.out.println(server + ":" + port + " " + m.direction);
             try(Socket c = new Socket(server, port)){
                 c.setSoTimeout(5000);
                 new ObjectOutputStream(c.getOutputStream()).writeObject(m);
